@@ -1,0 +1,2509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Aurelia · 深海荧光水母磨砂档案夹</title>
+  <meta name="description" content="纯代码生成的深海生物发光水母磨砂玻璃文件夹：渐进景深毛玻璃遮挡、物理触手律动、3D 掀盖玻片扇形摊开、拖拽生长与三层散景涡流绽放。" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100dvh;
+      min-height: 620px;
+      background: #000000;
+      color: rgba(235, 248, 255, 0.92);
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+      font-family: "Cormorant Garamond", "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      html, body, button, .card-item {
+        cursor: none !important;
+      }
+    }
+
+    #stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 620px;
+      background: #000000;
+      overflow: hidden;
+    }
+
+    canvas#scene {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+    }
+
+    /* 3D Perspective Overlay locked to the Folder Front Cover */
+    #folder-3d-anchor {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      pointer-events: none;
+      z-index: 3;
+      perspective: 900px;
+      -webkit-perspective: 900px;
+    }
+
+    #cover-face-ui {
+      position: absolute;
+      inset: 0;
+      transform-origin: 50% 100%;
+      -webkit-transform-origin: 50% 100%;
+      will-change: transform, opacity;
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 20px 25px 18px 25px;
+    }
+
+    .cover-bottom-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      width: 100%;
+      gap: 12px;
+    }
+
+    .title-group {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+    }
+
+    #title-wrap {
+      position: relative;
+      height: 54px;
+      display: flex;
+      align-items: flex-end;
+      filter: drop-shadow(0 2px 12px rgba(140, 225, 255, 0.24));
+      transition: opacity 0.25s ease;
+    }
+
+    .font-v1 #svg-calligraphy { display: block; }
+    .font-v1 #text-calligraphy { display: none; }
+
+    .font-v2 #svg-calligraphy,
+    .font-v3 #svg-calligraphy,
+    .font-v4 #svg-calligraphy { display: none; }
+
+    #text-calligraphy {
+      display: none;
+      color: rgba(244, 251, 255, 0.94);
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .font-v2 #text-calligraphy {
+      display: block;
+      font-family: "Snell Roundhand", "Apple Chancery", "Zapfino", "URW Chancery L", "Georgia", cursive, serif;
+      font-style: italic;
+      font-weight: 400;
+      font-size: 40px;
+      letter-spacing: 0.03em;
+    }
+
+    .font-v3 #text-calligraphy {
+      display: block;
+      font-family: "Didot", "Bodoni MT", "Cormorant Garamond", "Baskerville", "Times New Roman", serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 38px;
+      letter-spacing: 0.08em;
+    }
+
+    .font-v4 #text-calligraphy {
+      display: block;
+      font-family: "Optima", "Avenir Next", "Helvetica Neue", sans-serif;
+      font-weight: 200;
+      font-size: 29px;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      padding-bottom: 4px;
+    }
+
+    .subtitle-box {
+      position: relative;
+      height: 19px;
+      min-width: 185px;
+    }
+
+    .subtitle-line {
+      position: absolute;
+      left: 2px;
+      top: 0;
+      font-family: "Songti SC", "STSong", "SimSun", "Noto Serif SC", serif;
+      font-size: 12px;
+      letter-spacing: 0.28em;
+      color: rgba(224, 240, 255, 0.68);
+      white-space: nowrap;
+      transition: opacity 0.28s ease, transform 0.28s ease, color 0.28s ease;
+    }
+
+    #subtitle-drop {
+      opacity: 0;
+      transform: translateY(5px);
+      color: rgba(172, 242, 255, 0.96);
+      text-shadow: 0 0 12px rgba(118, 228, 255, 0.58);
+    }
+
+    body.dragging-near #subtitle-normal {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+
+    body.dragging-near #subtitle-drop {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .seal-icon {
+      width: 23px;
+      height: 33px;
+      opacity: 0.86;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 6px rgba(155, 230, 255, 0.32));
+    }
+
+    /* Specimen Card Fan Layer ("一手牌") */
+    #card-fan-layer {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 0;
+      height: 0;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    #card-fan-layer.open {
+      pointer-events: auto;
+    }
+
+    .card-item {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 78px;
+      height: 118px;
+      margin-left: -39px;
+      margin-top: -59px;
+      border-radius: 11px;
+      background: linear-gradient(
+        160deg,
+        rgba(156, 212, 250, 0.34) 0%,
+        rgba(128, 160, 224, 0.26) 50%,
+        rgba(86, 102, 166, 0.30) 100%
+      );
+      backdrop-filter: blur(13px) saturate(1.25);
+      -webkit-backdrop-filter: blur(13px) saturate(1.25);
+      border: 1px solid rgba(212, 242, 255, 0.36);
+      box-shadow:
+        0 10px 28px rgba(0, 6, 20, 0.56),
+        inset 0 1px 0 rgba(255, 255, 255, 0.38);
+      transform-origin: 50% 50%;
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        transform 0.46s cubic-bezier(0.2, 0.88, 0.26, 1),
+        opacity 0.30s ease,
+        background 0.24s ease,
+        border-color 0.24s ease,
+        box-shadow 0.24s ease;
+      padding: 9px 9px 10px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    #card-fan-layer.open .card-item {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .card-item.active,
+    .card-item:hover {
+      background: linear-gradient(
+        160deg,
+        rgba(182, 232, 255, 0.50) 0%,
+        rgba(156, 184, 246, 0.40) 52%,
+        rgba(118, 134, 204, 0.44) 100%
+      );
+      border-color: rgba(235, 252, 255, 0.78);
+      box-shadow:
+        0 16px 36px rgba(6, 18, 42, 0.72),
+        0 0 22px rgba(136, 228, 255, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.65);
+      z-index: 35 !important;
+    }
+
+    .card-item.deleting {
+      opacity: 0 !important;
+      transform: translateY(-44px) scale(0.76) !important;
+      pointer-events: none !important;
+      transition: transform 0.32s ease, opacity 0.28s ease !important;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 18px;
+    }
+
+    .card-mini-mark {
+      width: 10px;
+      height: 14px;
+      opacity: 0.68;
+    }
+
+    .card-del-btn {
+      appearance: none;
+      border: 1px solid rgba(225, 246, 255, 0.32);
+      background: rgba(14, 24, 44, 0.58);
+      color: rgba(242, 251, 255, 0.96);
+      font-family: "PingFang SC", "Songti SC", sans-serif;
+      font-size: 10px;
+      line-height: 1;
+      padding: 3px 6.5px;
+      border-radius: 999px;
+      opacity: 0;
+      transform: scale(0.86);
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease, background 0.18s ease;
+    }
+
+    .card-item.active .card-del-btn,
+    .card-item:hover .card-del-btn {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .card-del-btn:hover,
+    .card-del-btn:active {
+      background: rgba(215, 92, 138, 0.72);
+      border-color: rgba(255, 215, 232, 0.8);
+    }
+
+    .card-ext {
+      font-family: "Cormorant Garamond", "Baskerville", Georgia, serif;
+      font-style: italic;
+      font-size: 18px;
+      letter-spacing: 0.03em;
+      color: rgba(244, 252, 255, 0.94);
+      margin-top: -2px;
+    }
+
+    .card-name {
+      font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
+      font-size: 10.5px;
+      letter-spacing: 0.07em;
+      color: rgba(235, 246, 255, 0.85);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      position: relative;
+      z-index: 2;
+    }
+
+    .card-watermark {
+      position: absolute;
+      right: -3px;
+      bottom: 8px;
+      width: 24px;
+      height: 36px;
+      opacity: 0.18;
+      pointer-events: none;
+    }
+
+    /* Subtle Top-Right Minimal Controls */
+    #top-bar {
+      position: fixed;
+      top: max(14px, env(safe-area-inset-top, 14px));
+      right: max(16px, env(safe-area-inset-right, 16px));
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      opacity: 0.28;
+      transition: opacity 0.3s ease;
+    }
+
+    #top-bar:hover,
+    #top-bar:focus-within {
+      opacity: 0.92;
+    }
+
+    body.zen-mode #top-bar,
+    body.zen-mode #hint-whisper {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    .pill-ctrl {
+      appearance: none;
+      background: rgba(14, 22, 36, 0.55);
+      border: 1px solid rgba(185, 232, 255, 0.22);
+      color: rgba(226, 244, 255, 0.82);
+      font-family: "Songti SC", "PingFang SC", serif;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 4px 9px;
+      border-radius: 999px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+    }
+
+    .pill-ctrl.active,
+    .pill-ctrl:hover {
+      border-color: rgba(155, 235, 255, 0.65);
+      color: #ffffff;
+      background: rgba(34, 62, 92, 0.62);
+    }
+
+    #hint-whisper {
+      position: fixed;
+      bottom: max(14px, env(safe-area-inset-bottom, 14px));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 8;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: rgba(190, 224, 248, 0.26);
+      white-space: nowrap;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    @media (max-width: 560px) {
+      #cover-face-ui {
+        padding: 14px 17px 13px 17px;
+      }
+      #title-wrap {
+        height: 44px;
+      }
+      #svg-calligraphy {
+        width: 162px;
+        height: 44px;
+      }
+      .font-v2 #text-calligraphy { font-size: 32px; }
+      .font-v3 #text-calligraphy { font-size: 30px; }
+      .font-v4 #text-calligraphy { font-size: 23px; }
+      .subtitle-line {
+        font-size: 10.5px;
+        letter-spacing: 0.22em;
+      }
+      .seal-icon {
+        width: 20px;
+        height: 28px;
+      }
+      .card-item {
+        width: 58px;
+        height: 92px;
+        margin-left: -29px;
+        margin-top: -46px;
+        padding: 6px 6px 7px 7px;
+        border-radius: 9px;
+      }
+      .card-ext {
+        font-size: 14.5px;
+      }
+      .card-name {
+        font-size: 9.5px;
+      }
+      #hint-whisper {
+        font-size: 10px;
+        letter-spacing: 0.14em;
+      }
+    }
+  </style>
+</head>
+<body class="font-v1">
+  <main id="stage">
+    <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);">Aurelia 深海荧光水母交互档案夹</h1>
+
+    <canvas id="scene"></canvas>
+
+    <!-- 3D Perspective-Locked Folder Front Cover Typography & Emblem -->
+    <div id="folder-3d-anchor">
+      <div id="cover-face-ui">
+        <div class="cover-bottom-row">
+          <div class="title-group">
+            <div id="title-wrap">
+              <!-- Variant 1: Refined Flowing Copperplate Calligraphy "Aurelia" + Miniature Medusa Blossom -->
+              <svg id="svg-calligraphy" width="212" height="54" viewBox="0 0 256 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Aurelia">
+                <defs>
+                  <linearGradient id="inkGrad" x1="0" y1="8" x2="252" y2="24" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#E6F7FF" stop-opacity="0.90" />
+                    <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.98" />
+                    <stop offset="100%" stop-color="#DCF2FF" stop-opacity="0.92" />
+                  </linearGradient>
+                </defs>
+                <!-- Sweeping Left Calligraphic Oval Swash + Elegant Slanted Capital "A" -->
+                <path d="M22 44 C 8 49, 4 36, 15 26 C 26 16, 48 16, 56 24 C 44 21, 31 28, 28 39 C 26 48, 36 52, 47 45 C 57 38, 67 21, 73 11 C 74 9, 68 26, 65 39 C 63 47, 65 50, 71 49 C 76 48, 82 43, 86 37"
+                      stroke="url(#inkGrad)" stroke-width="2.05" stroke-linecap="round" stroke-linejoin="round" />
+                <!-- Delicate Extended Crossbar Swash -->
+                <path d="M37 37 C 52 33, 69 32, 83 34"
+                      stroke="url(#inkGrad)" stroke-width="1.35" stroke-linecap="round" opacity="0.82" />
+                <!-- Flowing "u" -> "r" -> open cradling "e" -->
+                <path d="M86 37 C 83 44, 84 49, 89 49 C 94 49, 100 43, 103 36 C 101 44, 101 49, 106 49 C 111 49, 117 43, 120 35 C 121 32, 119 30, 117 32 C 116 34, 120 36, 126 35 C 130 34, 129 42, 128 46 C 128 49, 132 50, 138 46 C 148 41, 155 35, 153 30 C 151 26, 142 29, 139 36 C 136 44, 141 50, 151 49 C 160 48, 169 41, 176 31"
+                      stroke="url(#inkGrad)" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round" />
+                <!-- True Slender Calligraphic Loop "l" + "i" + "a" + Graceful Terminal Flourish -->
+                <path d="M176 31 C 183 20, 189 10, 186 9 C 182 8, 174 22, 172 37 C 170 46, 173 50, 179 49 C 184 48, 190 43, 193 37 C 191 44, 191 49, 196 49 C 201 49, 206 45, 210 39"
+                      stroke="url(#inkGrad)" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round" />
+                <!-- "a" Oval & Trailing Wave -->
+                <path d="M225 36 C 221 31, 211 33, 208 40 C 205 46, 208 50, 214 50 C 220 50, 225 44, 227 36 C 225 44, 225 50, 232 50 C 239 50, 246 46, 251 41"
+                      stroke="url(#inkGrad)" stroke-width="1.95" stroke-linecap="round" stroke-linejoin="round" />
+                <!-- Miniature Bioluminescent Star-Floret Ornament (echoing Wisteria's flower inside letter!) -->
+                <circle cx="196.5" cy="26" r="1.9" fill="#DCFAFF" />
+                <circle cx="196.5" cy="26" r="4.5" fill="#7CE8FF" opacity="0.28" />
+                <circle cx="147" cy="40" r="1.6" fill="#F8D8FF" />
+                <circle cx="147" cy="40" r="5.4" stroke="#B6F4FF" stroke-width="0.75" stroke-dasharray="1.6 1.8" opacity="0.68" />
+                <circle cx="236" cy="54" r="1.25" fill="#BAE6FD" opacity="0.75" />
+              </svg>
+              <span id="text-calligraphy">Aurelia</span>
+            </div>
+
+            <div class="subtitle-box">
+              <div id="subtitle-normal" class="subtitle-line">深海 · <span id="file-count">12</span> 个文件</div>
+              <div id="subtitle-drop" class="subtitle-line">松手，沉入深海</div>
+            </div>
+          </div>
+
+          <!-- Minimalist Bioluminescent Jellyfish Seal Icon (Bottom-Right) -->
+          <svg class="seal-icon" viewBox="0 0 28 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M4 15 C 4 7.5, 9 3, 14 3 C 19 3, 24 7.5, 24 15 C 21.5 13.6, 19 15.4, 16.5 14 C 14 12.8, 14 15.2, 11.5 14 C 9 15.4, 6.5 13.6, 4 15 Z"
+                  fill="rgba(228, 247, 255, 0.88)" />
+            <path d="M7.5 10.5 C 10 6.8, 18 6.8, 20.5 10.5" stroke="rgba(38, 66, 98, 0.52)" stroke-width="1" stroke-linecap="round" />
+            <circle cx="11.5" cy="18.5" r="1.4" fill="rgba(228, 247, 255, 0.86)" />
+            <circle cx="14" cy="19.2" r="1.5" fill="rgba(228, 247, 255, 0.92)" />
+            <circle cx="16.5" cy="18.5" r="1.4" fill="rgba(228, 247, 255, 0.86)" />
+            <circle cx="12.2" cy="23" r="1.2" fill="rgba(228, 247, 255, 0.78)" />
+            <circle cx="15.8" cy="23" r="1.2" fill="rgba(228, 247, 255, 0.78)" />
+            <circle cx="14" cy="26.8" r="1.15" fill="rgba(228, 247, 255, 0.72)" />
+            <circle cx="13.2" cy="30.6" r="0.95" fill="rgba(228, 247, 255, 0.62)" />
+            <circle cx="14.6" cy="34.2" r="0.8" fill="rgba(228, 247, 255, 0.5)" />
+            <path d="M8.5 16.5 Q 7 23, 9 29" stroke="rgba(228, 247, 255, 0.48)" stroke-width="0.9" stroke-linecap="round" />
+            <path d="M19.5 16.5 Q 21 23, 19 29" stroke="rgba(228, 247, 255, 0.48)" stroke-width="0.9" stroke-linecap="round" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Specimen Card Fan Container -->
+    <div id="card-fan-layer" aria-label="深海文件切片列表"></div>
+
+    <!-- Whisper-subtle Font Picker & Sound Switch -->
+    <div id="top-bar">
+      <button class="pill-ctrl active" data-font="1" id="btn-font-1" title="手写花体">花体</button>
+      <button class="pill-ctrl" data-font="2" id="btn-font-2" title="古典草书">斜体</button>
+      <button class="pill-ctrl" data-font="3" id="btn-font-3" title="衬线镌刻">衬线</button>
+      <button class="pill-ctrl" data-font="4" id="btn-font-4" title="极简纤体">纤体</button>
+      <button class="pill-ctrl active" id="btn-audio" title="水下琉璃音效">音 · 开</button>
+    </div>
+
+    <div id="hint-whisper">轻点开合 · 划过拨弄 · 拖入左下切片 · 长按卷起深海涡流</div>
+  </main>
+
+  <script>
+  (() => {
+    'use strict';
+
+    // =========================================================================
+    // 1. INITIAL POETIC SPECIMEN FILES & EXTRA POOL
+    // =========================================================================
+    const INITIAL_FILES = [
+      { ext: 'm4a', name: '潮汐录音' },
+      { ext: 'mov', name: '蓝眼泪' },
+      { ext: 'txt', name: '没寄出的信' },
+      { ext: 'jpg', name: '月光海面' },
+      { ext: 'md',  name: '失重日记' },
+      { ext: 'wav', name: '深海频率' },
+      { ext: 'png', name: '午夜潜航' },
+      { ext: 'psd', name: '未名星云' },
+      { ext: 'mp3', name: '鲸落回声' },
+      { ext: 'jpg', name: '漂流瓶' },
+      { ext: 'txt', name: '第12次呼吸' },
+      { ext: 'png', name: '琥珀泡沫' }
+    ];
+
+    const EXTRA_POOL = [
+      { ext: 'jpg', name: '海雾胶片' },
+      { ext: 'mov', name: '荧光暗流' },
+      { ext: 'm4a', name: '珊瑚来信' },
+      { ext: 'md',  name: '极夜观测' },
+      { ext: 'png', name: '潮间带' },
+      { ext: 'txt', name: '海平面下' },
+      { ext: 'wav', name: '第7号浮标' },
+      { ext: 'psd', name: '月蚀潮汐' }
+    ];
+    let extraPoolIdx = 0;
+
+    const PALETTES = [
+      {
+        crest: [236, 252, 255],
+        mid:   [122, 224, 255],
+        rim:   [176, 244, 255],
+        inner: [244, 174, 255],
+        deep:  [26,  48,  88],
+        glow:  'rgba(116, 226, 255, 0.25)'
+      },
+      {
+        crest: [248, 240, 255],
+        mid:   [172, 182, 255],
+        rim:   [204, 228, 255],
+        inner: [255, 168, 228],
+        deep:  [40,  42,  92],
+        glow:  'rgba(180, 176, 255, 0.25)'
+      },
+      {
+        crest: [230, 255, 252],
+        mid:   [104, 234, 230],
+        rim:   [172, 252, 246],
+        inner: [198, 190, 255],
+        deep:  [22,  58,  76],
+        glow:  'rgba(108, 238, 232, 0.23)'
+      },
+      {
+        crest: [255, 244, 254],
+        mid:   [214, 170, 252],
+        rim:   [240, 216, 255],
+        inner: [144, 234, 255],
+        deep:  [48,  36,  86],
+        glow:  'rgba(218, 174, 255, 0.23)'
+      }
+    ];
+
+    // =========================================================================
+    // 2. PROCEDURAL WEB AUDIO (Underwater Glass Harp & Bubble Harmonics)
+    // =========================================================================
+    let audioCtx = null;
+    let audioEnabled = true;
+    let vortexDrone = null;
+    const SCALE_HZ = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51, 1567.98];
+
+    function ensureAudio() {
+      if (!audioEnabled) return null;
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    }
+
+    let lastChimeAt = 0;
+    function playChime(noteIndex = -1, gainPeak = 0.042, dur = 0.9) {
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      if (noteIndex === -1 && now - lastChimeAt < 0.075) return;
+      lastChimeAt = now;
+
+      const idx = noteIndex >= 0 ? noteIndex % SCALE_HZ.length : Math.floor(Math.random() * SCALE_HZ.length);
+      const freq = SCALE_HZ[idx] * (0.995 + Math.random() * 0.01);
+
+      const osc = ctx.createOscillator();
+      const sub = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const subGain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+      sub.type = 'triangle';
+      sub.frequency.setValueAtTime(freq * 2.0, now);
+      subGain.gain.setValueAtTime(0.16, now);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(gainPeak, now + 0.014);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+      osc.connect(gain);
+      sub.connect(subGain);
+      subGain.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      sub.start(now);
+      osc.stop(now + dur + 0.05);
+      sub.stop(now + dur + 0.05);
+    }
+
+    function playBubbleDrop() {
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(280, now);
+      osc.frequency.exponentialRampToValueAtTime(690, now + 0.14);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.072, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.24);
+      setTimeout(() => playChime(5, 0.042, 1.1), 110);
+      setTimeout(() => playChime(7, 0.036, 1.3), 210);
+    }
+
+    function playDissolveSound() {
+      const ctx = ensureAudio();
+      if (!ctx) return;
+      [6, 4, 2, 0].forEach((n, i) => {
+        setTimeout(() => playChime(n, 0.034, 1.0), i * 65);
+      });
+    }
+
+    function startVortexSound() {
+      const ctx = ensureAudio();
+      if (!ctx || vortexDrone) return;
+      const now = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc1.type = 'sine';
+      osc2.type = 'sine';
+      osc1.frequency.setValueAtTime(220, now);
+      osc1.frequency.exponentialRampToValueAtTime(440, now + 2.2);
+      osc2.frequency.setValueAtTime(329.63, now);
+      osc2.frequency.exponentialRampToValueAtTime(659.25, now + 2.2);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.042, now + 0.45);
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+      osc1.start(now);
+      osc2.start(now);
+      vortexDrone = { osc1, osc2, gain };
+    }
+
+    function stopVortexSound(burst = false) {
+      if (vortexDrone && audioCtx) {
+        const now = audioCtx.currentTime;
+        vortexDrone.gain.gain.cancelScheduledValues(now);
+        vortexDrone.gain.gain.setValueAtTime(Math.max(0.0002, vortexDrone.gain.gain.value || 0.02), now);
+        vortexDrone.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+        vortexDrone.osc1.stop(now + 0.32);
+        vortexDrone.osc2.stop(now + 0.32);
+        vortexDrone = null;
+      }
+      if (burst) {
+        [0, 2, 4, 5, 7, 8].forEach((n, i) => {
+          setTimeout(() => playChime(n, 0.04, 1.45), i * 42);
+        });
+      }
+    }
+
+    // =========================================================================
+    // 3. CANVAS, VELVETY GAUSSIAN / KAWASE FROSTED BLUR & BOKEH SPRITES
+    // =========================================================================
+    const canvas = document.getElementById('scene');
+    const ctx = canvas.getContext('2d', { alpha: false });
+
+    const pocketCanvas = document.createElement('canvas');
+    const pocketCtx = pocketCanvas.getContext('2d');
+
+    const blurNear = document.createElement('canvas'); // Soft lip blur
+    const blurNearCtx = blurNear.getContext('2d');
+    const blurDeep = document.createElement('canvas'); // Velvety deep nebula blur
+    const blurDeepCtx = blurDeep.getContext('2d');
+    const kawaseTmp = document.createElement('canvas'); // Ping-pong helper for zero-blockiness blur
+    const kawaseTmpCtx = kawaseTmp.getContext('2d');
+    const compBlur = document.createElement('canvas');
+    const compBlurCtx = compBlur.getContext('2d');
+
+    // Feature-detect native Canvas 2D Gaussian blur (supported on Chrome, modern iOS 17.4+, desktop)
+    const supportsCtxFilter = (() => {
+      try {
+        const tc = document.createElement('canvas');
+        tc.width = 16; tc.height = 16;
+        const tg = tc.getContext('2d');
+        if (!('filter' in tg)) return false;
+        tg.filter = 'blur(3px)';
+        tg.fillStyle = '#fff';
+        tg.fillRect(7, 7, 2, 2);
+        return tg.getImageData(4, 7, 1, 1).data[3] > 0;
+      } catch (_) {
+        return false;
+      }
+    })();
+
+    // Multi-pass Kawase ping-pong smoothing fallback (eliminates any bilinear grid facets on older WebKit!)
+    function smoothKawasePass(srcCanvas, dstCanvas, dstCtx, passes = 2) {
+      const w = dstCanvas.width;
+      const h = dstCanvas.height;
+      kawaseTmp.width = w;
+      kawaseTmp.height = h;
+
+      dstCtx.clearRect(0, 0, w, h);
+      dstCtx.imageSmoothingEnabled = true;
+      dstCtx.drawImage(srcCanvas, 0, 0, w, h);
+
+      for (let i = 0; i < passes; i++) {
+        const d = 0.85 + i * 0.75;
+        kawaseTmpCtx.clearRect(0, 0, w, h);
+        kawaseTmpCtx.globalAlpha = 0.25;
+        kawaseTmpCtx.drawImage(dstCanvas, -d, -d, w, h);
+        kawaseTmpCtx.drawImage(dstCanvas,  d, -d, w, h);
+        kawaseTmpCtx.drawImage(dstCanvas, -d,  d, w, h);
+        kawaseTmpCtx.drawImage(dstCanvas,  d,  d, w, h);
+        kawaseTmpCtx.globalAlpha = 1;
+
+        dstCtx.clearRect(0, 0, w, h);
+        dstCtx.drawImage(kawaseTmp, 0, 0, w, h);
+      }
+    }
+
+    // Subtle frosted micro-grain texture
+    const grainCanvas = document.createElement('canvas');
+    grainCanvas.width = 96;
+    grainCanvas.height = 96;
+    {
+      const gCtx = grainCanvas.getContext('2d');
+      const img = gCtx.createImageData(96, 96);
+      for (let i = 0; i < img.data.length; i += 4) {
+        const v = 195 + Math.floor(Math.random() * 60);
+        img.data[i] = v;
+        img.data[i + 1] = Math.min(255, v + 8);
+        img.data[i + 2] = 255;
+        img.data[i + 3] = Math.floor(Math.random() * 12);
+      }
+      gCtx.putImageData(img, 0, 0);
+    }
+    let grainPattern = null;
+
+    // Pre-rendered 3-Layer Bokeh & Medusa Petals
+    const bokehSprites = [];
+    function buildBokehSprites() {
+      const colors = [
+        [152, 236, 255],
+        [206, 186, 255],
+        [250, 186, 240],
+        [232, 250, 255]
+      ];
+      colors.forEach(([r, g, b]) => {
+        const c1 = document.createElement('canvas');
+        c1.width = 96;
+        c1.height = 96;
+        const g1 = c1.getContext('2d');
+        const rad = g1.createRadialGradient(48, 48, 2, 48, 48, 46);
+        rad.addColorStop(0.0, `rgba(${r}, ${g}, ${b}, 0.50)`);
+        rad.addColorStop(0.56, `rgba(${r}, ${g}, ${b}, 0.32)`);
+        rad.addColorStop(0.82, `rgba(242, 252, 255, 0.22)`);
+        rad.addColorStop(1.0, `rgba(${r}, ${g}, ${b}, 0.0)`);
+        g1.fillStyle = rad;
+        g1.beginPath();
+        g1.arc(48, 48, 46, 0, Math.PI * 2);
+        g1.fill();
+
+        const c2 = document.createElement('canvas');
+        c2.width = 48;
+        c2.height = 48;
+        const g2 = c2.getContext('2d');
+        g2.translate(24, 24);
+        const pGrad = g2.createRadialGradient(0, -3, 1, 0, 0, 17);
+        pGrad.addColorStop(0, `rgba(255, 255, 255, 0.96)`);
+        pGrad.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, 0.86)`);
+        pGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.0)`);
+        g2.fillStyle = pGrad;
+        g2.beginPath();
+        g2.arc(0, 0, 16, 0, Math.PI * 2);
+        g2.fill();
+
+        g2.fillStyle = `rgba(246, 252, 255, 0.94)`;
+        g2.strokeStyle = `rgba(${Math.max(20, r - 95)}, ${Math.max(30, g - 85)}, ${Math.max(60, b - 45)}, 0.52)`;
+        g2.lineWidth = 1.05;
+        g2.beginPath();
+        g2.moveTo(0, 8);
+        g2.bezierCurveTo(-9, 3, -10, -7, -4, -9);
+        g2.bezierCurveTo(-1, -10, 0, -6, 0, -5);
+        g2.bezierCurveTo(0, -6, 1, -10, 4, -9);
+        g2.bezierCurveTo(10, -7, 9, 3, 0, 8);
+        g2.closePath();
+        g2.fill();
+        g2.stroke();
+
+        bokehSprites.push({ soft: c1, crisp: c2, rgb: [r, g, b] });
+      });
+    }
+    buildBokehSprites();
+
+    // =========================================================================
+    // 4. LAYOUT & GEOMETRY STATE
+    // =========================================================================
+    let vw = window.innerWidth;
+    let vh = window.innerHeight;
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    const folder = {
+      cx: 0,
+      cy: 0,
+      w: 380,
+      h: 248,
+      perspective: 900,
+      openAngle: 11 * Math.PI / 180,
+      targetOpenAngle: 11 * Math.PI / 180,
+      tiltX: 0,
+      tiltY: 0,
+      targetTiltX: 0,
+      targetTiltY: 0,
+      isOpen: false,
+      isHoverFolder: false,
+      isDragNear: false
+    };
+
+    const dockPile = {
+      homeX: 0,
+      homeY: 0,
+      x: 0,
+      y: 0,
+      dragging: false,
+      ext: 'jpg',
+      name: '海雾胶片',
+      respawnAlpha: 1
+    };
+
+    let pocketDropAnim = null;
+
+    const anchorEl = document.getElementById('folder-3d-anchor');
+    const coverFaceEl = document.getElementById('cover-face-ui');
+    const cardFanEl = document.getElementById('card-fan-layer');
+    const fileCountEl = document.getElementById('file-count');
+
+    let filesState = [];
+    let jellyfishes = [];
+    let particles = [];
+    let stardust = [];
+    let idSeed = 1;
+
+    function updateLayout() {
+      vw = window.innerWidth;
+      vh = window.innerHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      canvas.width = Math.round(vw * dpr);
+      canvas.height = Math.round(vh * dpr);
+      pocketCanvas.width = canvas.width;
+      pocketCanvas.height = canvas.height;
+
+      const isMobile = vw < 560;
+      folder.w = isMobile ? Math.min(304, vw * 0.75) : Math.min(392, vw * 0.44);
+      folder.h = Math.round(folder.w * 0.648);
+      folder.cx = vw * 0.5;
+      folder.cy = isMobile ? vh * 0.56 : vh * 0.545;
+
+      const bw = Math.max(96, Math.round(vw * 0.5));
+      const bh = Math.max(96, Math.round(vh * 0.5));
+      blurNear.width = bw;
+      blurNear.height = bh;
+      blurDeep.width = Math.max(48, Math.round(bw * 0.45));
+      blurDeep.height = Math.max(48, Math.round(bh * 0.45));
+      compBlur.width = bw;
+      compBlur.height = bh;
+
+      dockPile.homeX = isMobile
+        ? Math.max(48, folder.cx - folder.w * 0.36)
+        : Math.max(76, folder.cx - folder.w * 0.72);
+      dockPile.homeY = isMobile
+        ? Math.min(vh - 68, folder.cy + folder.h * 0.72)
+        : folder.cy + folder.h * 0.34;
+      if (!dockPile.dragging) {
+        dockPile.x = dockPile.homeX;
+        dockPile.y = dockPile.homeY;
+      }
+
+      anchorEl.style.width = `${folder.w}px`;
+      anchorEl.style.height = `${folder.h}px`;
+      anchorEl.style.marginLeft = `${-folder.w * 0.5}px`;
+      anchorEl.style.marginTop = `${-folder.h * 0.5}px`;
+      anchorEl.style.top = `${folder.cy}px`;
+      anchorEl.style.left = `${folder.cx}px`;
+
+      cardFanEl.style.top = `${folder.cy + folder.h * 0.44}px`;
+      cardFanEl.style.left = `${folder.cx}px`;
+
+      grainPattern = ctx.createPattern(grainCanvas, 'repeat');
+
+      // Re-anchor tentacle chains cleanly on viewport resize/orientation change!
+      jellyfishes.forEach((j) => {
+        j.initializedNodes = false;
+      });
+      layoutCards();
+    }
+
+    // =========================================================================
+    // 5. PROCEDURAL JELLYFISH & ABYSSAL FLORA SYSTEM
+    // =========================================================================
+    function initStardust() {
+      stardust = [];
+      for (let i = 0; i < 84; i++) {
+        stardust.push({
+          u: Math.random(),
+          v: Math.random(),
+          r: 0.55 + Math.random() * 1.8,
+          alpha: 0.14 + Math.random() * 0.62,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.4 + Math.random() * 1.3,
+          driftX: (Math.random() - 0.5) * 4.5,
+          driftY: -2.0 - Math.random() * 5.0,
+          tint: Math.random() > 0.35 ? [210, 244, 255] : [242, 212, 255]
+        });
+      }
+    }
+
+    const SLOT_TEMPLATES = [
+      // Right-edge overhanging cascade (outside glass on the right!)
+      { nx: 0.52, ny: -0.35, angle: 0.42, scale: 1.02, layer: 'front', len: 1.32 },
+      { nx: 0.43, ny: -0.51, angle: 0.30, scale: 1.12, layer: 'front', len: 1.28 },
+      { nx: 0.57, ny: -0.14, angle: 0.50, scale: 0.86, layer: 'front', len: 1.24 },
+      // Upper-right & center-top crown (bells above folder lip, tentacles trailing inside frosted pocket!)
+      { nx: 0.24, ny: -0.66, angle: 0.14, scale: 1.16, layer: 'pocket', len: 1.26 },
+      { nx: 0.03, ny: -0.71, angle: 0.04, scale: 1.20, layer: 'pocket', len: 1.30 },
+      { nx: -0.15, ny: -0.62, angle: -0.06, scale: 1.08, layer: 'pocket', len: 1.18 },
+      // Mid-pocket & left cluster (glowing dreamily behind frosted glass)
+      { nx: 0.33, ny: -0.43, angle: 0.18, scale: 0.94, layer: 'pocket', len: 1.15 },
+      { nx: 0.13, ny: -0.48, angle: 0.08, scale: 0.96, layer: 'pocket', len: 1.20 },
+      { nx: -0.26, ny: -0.46, angle: -0.10, scale: 0.88, layer: 'pocket', len: 1.06 },
+      { nx: -0.05, ny: -0.39, angle: 0.02, scale: 0.90, layer: 'pocket', len: 1.14 },
+      { nx: 0.22, ny: -0.26, angle: 0.15, scale: 0.84, layer: 'pocket', len: 1.05 },
+      { nx: -0.20, ny: -0.27, angle: -0.05, scale: 0.78, layer: 'pocket', len: 0.96 }
+    ];
+
+    function clamp(v, lo, hi) {
+      return v < lo ? lo : (v > hi ? hi : v);
+    }
+
+    function createJellyfish(fileId, slotIdx, spawnFromBottom = false) {
+      const tpl = SLOT_TEMPLATES[slotIdx % SLOT_TEMPLATES.length];
+      const jitterX = slotIdx >= SLOT_TEMPLATES.length ? Math.sin(slotIdx * 2.1) * 0.07 : 0;
+      const jitterY = slotIdx >= SLOT_TEMPLATES.length ? -Math.abs(Math.cos(slotIdx * 1.7)) * 0.08 : 0;
+      const nx = clamp(tpl.nx + jitterX, -0.34, 0.58);
+      const ny = clamp(tpl.ny + jitterY, -0.78, -0.12);
+      const layer = nx > 0.41 ? 'front' : tpl.layer;
+      const pal = PALETTES[slotIdx % PALETTES.length];
+
+      const tentacleCount = 7;
+      const nodesPerStrand = 9;
+      const strands = [];
+      for (let s = 0; s < tentacleCount; s++) {
+        const u = (s / (tentacleCount - 1)) * 2 - 1;
+        const isOralArm = (s === 2 || s === 3 || s === 4);
+        const nodes = [];
+        for (let k = 0; k < nodesPerStrand; k++) {
+          nodes.push({ x: 0, y: 0, vx: 0, vy: 0 });
+        }
+        strands.push({
+          u,
+          isOralArm,
+          lenFactor: (isOralArm ? 1.08 : 0.88 + (1 - Math.abs(u)) * 0.34) * tpl.len,
+          phase: Math.random() * Math.PI * 2,
+          nodes
+        });
+      }
+
+      return {
+        id: fileId,
+        nx,
+        ny,
+        baseAngle: tpl.angle + (slotIdx >= 12 ? Math.sin(slotIdx) * 0.08 : 0),
+        angleOffset: 0,
+        angleVel: 0,
+        dispX: 0,
+        dispY: spawnFromBottom ? 85 : 0,
+        velX: 0,
+        velY: 0,
+        scale: tpl.scale,
+        grow: spawnFromBottom ? 0.05 : 1.0,
+        layer,
+        pal,
+        phase: Math.random() * Math.PI * 2,
+        pulseSpeed: 1.55 + (slotIdx % 5) * 0.16,
+        strands,
+        initializedNodes: false
+      };
+    }
+
+    function initCollection() {
+      filesState = [];
+      jellyfishes = [];
+      INITIAL_FILES.forEach((f, idx) => {
+        const fid = idSeed++;
+        filesState.push({ id: fid, ext: f.ext, name: f.name });
+        jellyfishes.push(createJellyfish(fid, idx, false));
+      });
+      rebuildCardDOM();
+      updateFileCounter();
+    }
+
+    function updateFileCounter() {
+      fileCountEl.textContent = String(filesState.length);
+    }
+
+    // =========================================================================
+    // 6. SPECIMEN CARD FAN DOM ("点一下文件夹，文件像一手牌一样摊开")
+    // =========================================================================
+    let activeCardId = null;
+
+    function rebuildCardDOM() {
+      cardFanEl.innerHTML = '';
+      filesState.forEach((file) => {
+        const card = document.createElement('div');
+        card.className = 'card-item';
+        card.dataset.id = String(file.id);
+        card.innerHTML = `
+          <div class="card-top">
+            <svg class="card-mini-mark" viewBox="0 0 14 20" fill="none">
+              <path d="M2 8C2 4 4.5 1.5 7 1.5C9.5 1.5 12 4 12 8Z" fill="rgba(235,250,255,0.85)"/>
+              <circle cx="5.2" cy="10.8" r="0.9" fill="rgba(235,250,255,0.8)"/>
+              <circle cx="7" cy="11.4" r="1" fill="rgba(235,250,255,0.85)"/>
+              <circle cx="8.8" cy="10.8" r="0.9" fill="rgba(235,250,255,0.8)"/>
+              <circle cx="7" cy="14.5" r="0.85" fill="rgba(235,250,255,0.68)"/>
+              <circle cx="7" cy="17.5" r="0.7" fill="rgba(235,250,255,0.5)"/>
+            </svg>
+            <button class="card-del-btn" type="button" aria-label="删掉 ${file.name}">删掉</button>
+          </div>
+          <div class="card-ext">${file.ext}</div>
+          <div class="card-name">${file.name}</div>
+          <svg class="card-watermark" viewBox="0 0 28 40" fill="none">
+            <path d="M4 15C4 7.5 9 3 14 3C19 3 24 7.5 24 15Z" fill="#E2F6FF"/>
+            <circle cx="11" cy="19" r="1.5" fill="#E2F6FF"/>
+            <circle cx="14" cy="21" r="1.5" fill="#E2F6FF"/>
+            <circle cx="17" cy="19" r="1.5" fill="#E2F6FF"/>
+            <circle cx="13" cy="26" r="1.3" fill="#E2F6FF"/>
+            <circle cx="15" cy="31" r="1.1" fill="#E2F6FF"/>
+          </svg>
+        `;
+
+        const delBtn = card.querySelector('.card-del-btn');
+        delBtn.addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+        });
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteFileById(file.id, card);
+        });
+
+        card.addEventListener('pointerenter', (e) => {
+          if (e.pointerType === 'mouse' && folder.isOpen) {
+            activeCardId = file.id;
+            layoutCards();
+            playChime(-1, 0.02, 0.55);
+          }
+        });
+        card.addEventListener('pointerleave', (e) => {
+          if (e.pointerType === 'mouse' && activeCardId === file.id) {
+            activeCardId = null;
+            layoutCards();
+          }
+        });
+        card.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (!folder.isOpen) return;
+          if (activeCardId === file.id) {
+            activeCardId = null;
+          } else {
+            activeCardId = file.id;
+            playChime(-1, 0.028, 0.65);
+          }
+          layoutCards();
+        });
+
+        cardFanEl.appendChild(card);
+      });
+      layoutCards();
+    }
+
+    function layoutCards() {
+      const cards = cardFanEl.querySelectorAll('.card-item');
+      const n = cards.length;
+      if (!n) return;
+
+      const isMobile = vw < 560;
+      const maxSpanDeg = Math.min(isMobile ? 52 : 62, Math.max(18, (n - 1) * (isMobile ? 4.7 : 5.6)));
+      const maxHalfX = isMobile ? Math.min(vw * 0.39, 152) : Math.min(folder.w * 0.72, vw * 0.38);
+
+      cards.forEach((card, i) => {
+        if (card.classList.contains('deleting')) return;
+        const fid = Number(card.dataset.id);
+        const t = n === 1 ? 0 : (i / (n - 1)) * 2 - 1;
+        const deg = t * (maxSpanDeg * 0.5);
+        const rad = deg * Math.PI / 180;
+        const x = Math.sin(rad * 1.12) * (maxHalfX / Math.sin(Math.max(0.28, (maxSpanDeg * 0.5 * Math.PI / 180) * 1.12)));
+        const baseLiftY = isMobile ? -34 : -42;
+        const archY = baseLiftY + (1 - Math.cos(rad * 1.45)) * (isMobile ? 64 : 92);
+
+        const isActive = (fid === activeCardId);
+        card.classList.toggle('active', isActive);
+        card.style.zIndex = String(10 + i);
+
+        if (folder.isOpen) {
+          const lift = isActive ? (isMobile ? -26 : -34) : 0;
+          const sc = isActive ? 1.08 : 1.0;
+          const lx = x + Math.sin(rad) * (-lift);
+          const ly = archY - Math.cos(rad) * (-lift);
+          card.style.transitionDelay = isActive ? '0ms' : `${i * 18}ms`;
+          card.style.transform = `translate3d(${lx.toFixed(1)}px, ${ly.toFixed(1)}px, 0) rotate(${deg.toFixed(2)}deg) scale(${sc})`;
+        } else {
+          card.style.transitionDelay = '0ms';
+          card.style.transform = `translate3d(${(t * 18).toFixed(1)}px, -18px, 0) rotate(${(deg * 0.25).toFixed(2)}deg) scale(0.72)`;
+        }
+      });
+    }
+
+    function setFolderOpen(open) {
+      folder.isOpen = open;
+      activeCardId = null;
+      cardFanEl.classList.toggle('open', open);
+      playChime(open ? 4 : 1, 0.036, 0.85);
+      layoutCards();
+    }
+
+    function deleteFileById(fid, cardEl) {
+      const idx = filesState.findIndex(f => f.id === fid);
+      if (idx === -1) return;
+      filesState.splice(idx, 1);
+      if (activeCardId === fid) activeCardId = null;
+      updateFileCounter();
+      playDissolveSound();
+
+      if (cardEl) {
+        cardEl.classList.add('deleting');
+        setTimeout(() => {
+          if (cardEl.parentNode) cardEl.parentNode.removeChild(cardEl);
+          layoutCards();
+        }, 300);
+      }
+
+      const jIdx = jellyfishes.findIndex(j => j.id === fid);
+      if (jIdx !== -1) {
+        const j = jellyfishes[jIdx];
+        spawnJellyfishDissolve(j);
+        jellyfishes.splice(jIdx, 1);
+      }
+      setTimeout(layoutCards, 20);
+    }
+
+    function addNewFile(extRaw, nameRaw) {
+      const cleanExt = (extRaw || 'jpg').replace(/^\./, '').toLowerCase().slice(0, 5) || 'jpg';
+      const cleanName = (nameRaw || '深海切片').replace(/\.[^.]+$/, '').slice(0, 9) || '深海切片';
+      const fid = idSeed++;
+      const slotIdx = jellyfishes.length;
+
+      pocketDropAnim = {
+        ext: cleanExt,
+        t: 0,
+        duration: 1.05
+      };
+
+      playBubbleDrop();
+
+      filesState.push({ id: fid, ext: cleanExt, name: cleanName });
+      const newJelly = createJellyfish(fid, slotIdx, true);
+      jellyfishes.push(newJelly);
+
+      const bx = folder.cx + newJelly.nx * folder.w * 0.72;
+      const by = folder.cy - folder.h * 0.42;
+      for (let i = 0; i < 20; i++) {
+        spawnParticle(bx + (Math.random() - 0.5) * 44, by + (Math.random() - 0.5) * 20, 'bubble');
+      }
+
+      updateFileCounter();
+      rebuildCardDOM();
+    }
+
+    // =========================================================================
+    // 7. PARTICLE SYSTEM (3-Layer Depth Bokeh, Dissolve Motes, Vortex & Burst)
+    // =========================================================================
+    function spawnParticle(x, y, mode = 'ambient', customPal = null) {
+      if (particles.length > 460) particles.shift();
+      const spriteIdx = customPal !== null ? customPal : Math.floor(Math.random() * bokehSprites.length);
+      const depthRoll = Math.random();
+      const depthLayer = depthRoll < 0.18 ? 0 : (depthRoll < 0.74 ? 1 : 2);
+
+      let vx = (Math.random() - 0.5) * 28;
+      let vy = -12 - Math.random() * 26;
+      let life = 2.6 + Math.random() * 2.6;
+      let size = depthLayer === 0 ? (15 + Math.random() * 19) : (depthLayer === 1 ? (5.5 + Math.random() * 5.2) : (1.6 + Math.random() * 2.1));
+
+      if (mode === 'ambient') {
+        vx = 6 + Math.random() * 22;
+        vy = 14 + Math.random() * 28;
+        size *= 0.85;
+      } else if (mode === 'dissolve') {
+        vx = (Math.random() - 0.35) * 56;
+        vy = 18 + Math.random() * 64;
+        if (Math.random() < 0.45) vy = -18 - Math.random() * 42;
+        life = 2.2 + Math.random() * 1.8;
+      } else if (mode === 'bubble') {
+        vx = (Math.random() - 0.5) * 34;
+        vy = -36 - Math.random() * 54;
+        size = 1.8 + Math.random() * 3.8;
+        life = 1.4 + Math.random() * 1.2;
+      } else if (mode === 'vortex') {
+        const ang = Math.random() * Math.PI * 2;
+        const rad = 18 + Math.random() * 155;
+        x = pointer.x + Math.cos(ang) * rad;
+        y = pointer.y + Math.sin(ang) * rad;
+        vx = -Math.sin(ang) * 95;
+        vy = Math.cos(ang) * 95;
+        life = 3.2 + Math.random() * 2.0;
+      }
+
+      particles.push({
+        x, y, vx, vy,
+        rot: Math.random() * Math.PI * 2,
+        vRot: (Math.random() - 0.5) * 3.5,
+        size,
+        depthLayer,
+        spriteIdx,
+        isBubble: mode === 'bubble',
+        age: 0,
+        life
+      });
+    }
+
+    function spawnJellyfishDissolve(j) {
+      const jx = folder.cx + j.nx * folder.w + j.dispX;
+      const jy = folder.cy + j.ny * folder.h + j.dispY;
+      for (let i = 0; i < 46; i++) {
+        const ox = (Math.random() - 0.35) * 65;
+        const oy = Math.random() * 125 - 15;
+        spawnParticle(jx + ox, jy + oy, 'dissolve');
+      }
+      for (let s = 0; s < j.strands.length; s++) {
+        const st = j.strands[s];
+        for (let k = 1; k < st.nodes.length; k += 2) {
+          spawnParticle(st.nodes[k].x, st.nodes[k].y, 'dissolve');
+        }
+      }
+    }
+
+    function triggerVortexBurst() {
+      const cx = pointer.x;
+      const cy = pointer.y;
+      for (let i = 0; i < 195; i++) {
+        spawnParticle(cx + (Math.random() - 0.5) * 36, cy + (Math.random() - 0.5) * 36, 'vortex');
+      }
+      particles.forEach((p) => {
+        const dx = p.x - cx;
+        const dy = p.y - cy;
+        const dist = Math.hypot(dx, dy) + 0.001;
+        const dirX = dx / dist;
+        const dirY = dy / dist;
+        const speed = 155 + Math.random() * 490;
+        const tang = (Math.random() - 0.5) * 145;
+        p.vx = dirX * speed - dirY * tang;
+        p.vy = dirY * speed + dirX * tang;
+        p.age = 0;
+        p.life = 3.0 + Math.random() * 2.8;
+      });
+      jellyfishes.forEach((j) => {
+        const jx = folder.cx + j.nx * folder.w;
+        const jy = folder.cy + j.ny * folder.h;
+        const dx = jx - cx;
+        const dy = jy - cy;
+        const d = Math.hypot(dx, dy) + 30;
+        j.velX += (dx / d) * 140;
+        j.velY += (dy / d) * 110;
+      });
+    }
+
+    // =========================================================================
+    // 8. UNIFIED POINTER, OS DRAG-DROP, MINI-STACK DRAG & VORTEX LONG-PRESS
+    // =========================================================================
+    const pointer = {
+      x: vw * 0.62,
+      y: vh * 0.48,
+      smoothX: vw * 0.62,
+      smoothY: vh * 0.48,
+      vx: 0,
+      vy: 0,
+      active: false,
+      isDown: false,
+      downX: 0,
+      downY: 0,
+      downAt: 0,
+      movedDist: 0,
+      vortexActive: false,
+      vortexPower: 0,
+      ringScale: 1
+    };
+
+    let longPressTimer = null;
+    let osDragging = false;
+    let osDragExt = 'jpg';
+
+    function isPointInFolder(px, py, pad = 0) {
+      const hw = folder.w * 0.54 + pad;
+      const hh = folder.h * 0.54 + pad;
+      return Math.abs(px - folder.cx) <= hw && Math.abs(py - folder.cy) <= hh;
+    }
+
+    function isPointInDockPile(px, py) {
+      if (folder.isOpen || dockPile.respawnAlpha < 0.4) return false;
+      return Math.hypot(px - dockPile.x, py - dockPile.y) <= 42;
+    }
+
+    function closestEl(target, selector) {
+      return (target && typeof target.closest === 'function') ? target.closest(selector) : null;
+    }
+
+    window.addEventListener('pointerdown', (e) => {
+      if (closestEl(e.target, '#top-bar') || closestEl(e.target, '.card-item')) return;
+      ensureAudio();
+
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+      pointer.active = true;
+      pointer.isDown = true;
+      pointer.downX = e.clientX;
+      pointer.downY = e.clientY;
+      pointer.downAt = performance.now();
+      pointer.movedDist = 0;
+
+      if (isPointInDockPile(e.clientX, e.clientY)) {
+        dockPile.dragging = true;
+        dockPile.x = e.clientX;
+        dockPile.y = e.clientY;
+        playChime(3, 0.03, 0.6);
+        return;
+      }
+
+      clearTimeout(longPressTimer);
+      longPressTimer = setTimeout(() => {
+        if (pointer.isDown && !dockPile.dragging && pointer.movedDist < 26 && !folder.isOpen) {
+          pointer.vortexActive = true;
+          startVortexSound();
+        }
+      }, 240);
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      const prevX = pointer.x;
+      const prevY = pointer.y;
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+      pointer.vx = (pointer.x - prevX) * 60;
+      pointer.vy = (pointer.y - prevY) * 60;
+      pointer.active = true;
+
+      if (pointer.isDown) {
+        pointer.movedDist = Math.hypot(pointer.x - pointer.downX, pointer.y - pointer.downY);
+        if (pointer.movedDist > 26 && !pointer.vortexActive) {
+          clearTimeout(longPressTimer);
+        }
+      }
+
+      if (dockPile.dragging) {
+        dockPile.x = pointer.x;
+        dockPile.y = pointer.y;
+        const near = isPointInFolder(pointer.x, pointer.y, 48);
+        folder.isDragNear = near;
+        document.body.classList.toggle('dragging-near', near);
+      } else if (!osDragging) {
+        folder.isHoverFolder = isPointInFolder(pointer.x, pointer.y, 12);
+      }
+
+      if (!dockPile.dragging && !pointer.vortexActive) {
+        brushJellyfishes(pointer.x, pointer.y, pointer.vx, pointer.vy);
+      }
+    });
+
+    function finishPointerUp(e) {
+      clearTimeout(longPressTimer);
+
+      if (dockPile.dragging) {
+        dockPile.dragging = false;
+        const droppedIn = isPointInFolder(pointer.x, pointer.y, 48);
+        folder.isDragNear = false;
+        document.body.classList.remove('dragging-near');
+
+        if (droppedIn) {
+          addNewFile(dockPile.ext, dockPile.name);
+          const nextItem = EXTRA_POOL[extraPoolIdx++ % EXTRA_POOL.length];
+          dockPile.ext = nextItem.ext;
+          dockPile.name = nextItem.name;
+          dockPile.respawnAlpha = 0;
+          dockPile.x = dockPile.homeX;
+          dockPile.y = dockPile.homeY;
+        }
+        pointer.isDown = false;
+        return;
+      }
+
+      if (pointer.vortexActive) {
+        pointer.vortexActive = false;
+        stopVortexSound(true);
+        triggerVortexBurst();
+        pointer.isDown = false;
+        return;
+      }
+
+      const elapsed = performance.now() - pointer.downAt;
+      if (pointer.isDown && elapsed < 320 && pointer.movedDist < 14) {
+        if (!closestEl(e.target, '#top-bar') && !closestEl(e.target, '.card-item')) {
+          if (folder.isOpen) {
+            setFolderOpen(false);
+          } else if (isPointInFolder(pointer.x, pointer.y, 20)) {
+            setFolderOpen(true);
+          }
+        }
+      }
+      pointer.isDown = false;
+    }
+
+    window.addEventListener('pointerup', finishPointerUp);
+    window.addEventListener('pointercancel', finishPointerUp);
+
+    let lastTapBgAt = 0;
+    window.addEventListener('dblclick', (e) => {
+      if (!isPointInFolder(e.clientX, e.clientY, 30) && !closestEl(e.target, '#top-bar')) {
+        document.body.classList.toggle('zen-mode');
+      }
+    });
+    window.addEventListener('touchend', (e) => {
+      if (e.changedTouches && e.changedTouches.length === 1) {
+        const t = e.changedTouches[0];
+        if (!isPointInFolder(t.clientX, t.clientY, 35) && !isPointInDockPile(t.clientX, t.clientY)) {
+          const now = performance.now();
+          if (now - lastTapBgAt < 300) {
+            document.body.classList.toggle('zen-mode');
+          }
+          lastTapBgAt = now;
+        }
+      }
+    }, { passive: true });
+
+    window.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      osDragging = true;
+      folder.isDragNear = true;
+      if (folder.isOpen) setFolderOpen(false);
+      document.body.classList.add('dragging-near');
+    });
+
+    window.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      osDragging = true;
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+      pointer.active = true;
+      folder.isDragNear = true;
+      document.body.classList.add('dragging-near');
+    });
+
+    window.addEventListener('dragleave', (e) => {
+      if (e.clientX <= 0 || e.clientY <= 0 || e.clientX >= vw || e.clientY >= vh) {
+        osDragging = false;
+        folder.isDragNear = false;
+        document.body.classList.remove('dragging-near');
+      }
+    });
+
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      osDragging = false;
+      folder.isDragNear = false;
+      document.body.classList.remove('dragging-near');
+
+      const droppedFiles = e.dataTransfer && e.dataTransfer.files;
+      if (droppedFiles && droppedFiles.length > 0) {
+        Array.from(droppedFiles).slice(0, 5).forEach((f, idx) => {
+          const parts = f.name.split('.');
+          const ext = parts.length > 1 ? parts.pop() : 'dat';
+          const base = parts.join('.') || '深海切片';
+          setTimeout(() => addNewFile(ext, base), idx * 180);
+        });
+      } else {
+        const item = EXTRA_POOL[extraPoolIdx++ % EXTRA_POOL.length];
+        addNewFile(item.ext, item.name);
+      }
+    });
+
+    document.querySelectorAll('[data-font]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const f = btn.dataset.font;
+        document.body.className = document.body.className.replace(/\bfont-v\d\b/g, '').trim();
+        document.body.classList.add(`font-v${f}`);
+        document.querySelectorAll('[data-font]').forEach(b => b.classList.toggle('active', b === btn));
+        playChime(Number(f) + 1, 0.03, 0.65);
+      });
+    });
+
+    const audioBtn = document.getElementById('btn-audio');
+    audioBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      audioEnabled = !audioEnabled;
+      audioBtn.classList.toggle('active', audioEnabled);
+      audioBtn.textContent = audioEnabled ? '音 · 开' : '音 · 静';
+      if (audioEnabled) playChime(4, 0.035, 0.7);
+    });
+
+    let brushScatterCooldown = 0;
+    function brushJellyfishes(px, py, vx, vy) {
+      const speed = Math.hypot(vx, vy);
+      if (speed < 25) return;
+
+      let touchedAny = false;
+      jellyfishes.forEach((j) => {
+        const jx = folder.cx + j.nx * folder.w + j.dispX;
+        const jy = folder.cy + j.ny * folder.h + j.dispY;
+        const dBell = Math.hypot(px - jx, py - jy);
+        if (dBell < 78) {
+          const falloff = (1 - dBell / 78);
+          j.velX += vx * 0.065 * falloff;
+          j.velY += vy * 0.055 * falloff;
+          j.angleVel += clamp(vx * 0.00045, -0.18, 0.18) * falloff;
+          touchedAny = true;
+        }
+        j.strands.forEach((st) => {
+          st.nodes.forEach((nd, k) => {
+            if (k === 0) return;
+            const dn = Math.hypot(px - nd.x, py - nd.y);
+            if (dn < 52) {
+              const w = (1 - dn / 52) * (k / st.nodes.length);
+              nd.vx += vx * 0.048 * w;
+              nd.vy += vy * 0.042 * w;
+              touchedAny = true;
+            }
+          });
+        });
+      });
+
+      const now = performance.now();
+      if (touchedAny && speed > 140 && now - brushScatterCooldown > 55) {
+        brushScatterCooldown = now;
+        const count = Math.min(4, 1 + Math.floor(speed / 360));
+        for (let i = 0; i < count; i++) {
+          spawnParticle(px + (Math.random() - 0.5) * 26, py + (Math.random() - 0.5) * 26, 'ambient');
+          particles[particles.length - 1].vx = vx * 0.14 + (Math.random() - 0.5) * 58;
+          particles[particles.length - 1].vy = vy * 0.12 - 22 - Math.random() * 44;
+        }
+        if (speed > 260) playChime(-1, 0.024, 0.7);
+      }
+    }
+
+    // =========================================================================
+    // 9. PHYSICS UPDATE STEP
+    // =========================================================================
+    let lastTime = performance.now();
+    let ambientSpawnAcc = 0;
+
+    function stepSimulation(now) {
+      const dt = Math.min(0.033, Math.max(0.001, (now - lastTime) * 0.001));
+      lastTime = now;
+      const tSec = now * 0.001;
+
+      pointer.smoothX += (pointer.x - pointer.smoothX) * Math.min(1, dt * 16);
+      pointer.smoothY += (pointer.y - pointer.smoothY) * Math.min(1, dt * 16);
+
+      if (pointer.vortexActive) {
+        pointer.vortexPower = Math.min(1, pointer.vortexPower + dt * 2.4);
+        pointer.ringScale += (0.56 - pointer.ringScale) * dt * 10;
+        for (let i = 0; i < 5; i++) {
+          spawnParticle(pointer.x, pointer.y, 'vortex');
+        }
+      } else {
+        pointer.vortexPower = Math.max(0, pointer.vortexPower - dt * 3.5);
+        const targetRing = pointer.isDown ? 0.82 : 1.0;
+        pointer.ringScale += (targetRing - pointer.ringScale) * dt * 10;
+      }
+
+      if (folder.isOpen) {
+        folder.targetOpenAngle = 72.5 * Math.PI / 180;
+      } else if (folder.isDragNear) {
+        folder.targetOpenAngle = 24.0 * Math.PI / 180;
+      } else if (folder.isHoverFolder) {
+        folder.targetOpenAngle = 16.5 * Math.PI / 180;
+      } else {
+        folder.targetOpenAngle = 11.0 * Math.PI / 180;
+      }
+      folder.openAngle += (folder.targetOpenAngle - folder.openAngle) * Math.min(1, dt * 9.5);
+
+      const relX = clamp((pointer.smoothX - folder.cx) / (vw * 0.45), -1, 1);
+      const relY = clamp((pointer.smoothY - folder.cy) / (vh * 0.45), -1, 1);
+      const tiltScale = folder.isOpen ? 0.32 : 1.0;
+      folder.targetTiltY = relX * 6.8 * (Math.PI / 180) * tiltScale;
+      folder.targetTiltX = -relY * 5.2 * (Math.PI / 180) * tiltScale;
+      folder.tiltX += (folder.targetTiltX - folder.tiltX) * Math.min(1, dt * 8);
+      folder.tiltY += (folder.targetTiltY - folder.tiltY) * Math.min(1, dt * 8);
+
+      const degOpen = (folder.openAngle * 180 / Math.PI) - (folder.tiltX * 180 / Math.PI);
+      const degY = folder.tiltY * 180 / Math.PI;
+      coverFaceEl.style.transform = `rotateX(${(-degOpen).toFixed(2)}deg) rotateY(${degY.toFixed(2)}deg)`;
+      coverFaceEl.style.opacity = folder.isOpen ? '0.45' : '1';
+
+      if (!dockPile.dragging) {
+        const bobX = Math.sin(tSec * 1.4) * 3.5;
+        const bobY = Math.cos(tSec * 1.1) * 4.5;
+        dockPile.x += (dockPile.homeX + bobX - dockPile.x) * Math.min(1, dt * 9);
+        dockPile.y += (dockPile.homeY + bobY - dockPile.y) * Math.min(1, dt * 9);
+        dockPile.respawnAlpha = Math.min(1, dockPile.respawnAlpha + dt * 1.4);
+      }
+
+      if (pocketDropAnim) {
+        pocketDropAnim.t += dt;
+        if (pocketDropAnim.t >= pocketDropAnim.duration) {
+          pocketDropAnim = null;
+        }
+      }
+
+      ambientSpawnAcc += dt;
+      if (ambientSpawnAcc > 0.32 && !pointer.vortexActive) {
+        ambientSpawnAcc = 0;
+        if (jellyfishes.length > 0) {
+          const rj = jellyfishes[Math.floor(Math.random() * jellyfishes.length)];
+          const sx = folder.cx + rj.nx * folder.w + rj.dispX + (Math.random() - 0.5) * 44;
+          const sy = folder.cy + rj.ny * folder.h + rj.dispY + 18 + Math.random() * 65;
+          spawnParticle(sx, sy, Math.random() < 0.22 ? 'bubble' : 'ambient');
+        }
+      }
+
+      const scaleFactor = folder.w / 380;
+      jellyfishes.forEach((j, idx) => {
+        j.grow += (1 - j.grow) * Math.min(1, dt * 4.5);
+        const pulsePhase = tSec * j.pulseSpeed + j.phase;
+        const swimThrust = Math.sin(pulsePhase) * 3.2;
+
+        if (pointer.vortexPower > 0.01) {
+          const jx = folder.cx + j.nx * folder.w + j.dispX;
+          const jy = folder.cy + j.ny * folder.h + j.dispY;
+          const dx = pointer.x - jx;
+          const dy = pointer.y - jy;
+          j.velX += dx * 1.65 * pointer.vortexPower * dt;
+          j.velY += (dy - 26) * 1.85 * pointer.vortexPower * dt;
+          j.angleVel += clamp(-dx * 0.004, -0.6, 0.6) * pointer.vortexPower * dt;
+        }
+
+        j.velX += (-j.dispX * 14.0) * dt;
+        j.velY += ((-j.dispY + swimThrust) * 12.0) * dt;
+        j.velX *= Math.pow(0.08, dt);
+        j.velY *= Math.pow(0.08, dt);
+        j.dispX += j.velX * dt;
+        j.dispY += j.velY * dt;
+
+        const breezeAngle = Math.sin(tSec * 1.15 + idx * 0.7) * 0.055;
+        j.angleVel += ((breezeAngle - j.angleOffset) * 14.0) * dt;
+        j.angleVel *= Math.pow(0.09, dt);
+        j.angleOffset += j.angleVel * dt;
+
+        const totalAngle = j.baseAngle + j.angleOffset;
+        const bellX = folder.cx + j.nx * folder.w + j.dispX;
+        const bellY = folder.cy + j.ny * folder.h + j.dispY;
+        const bellR = 26 * j.scale * j.grow * scaleFactor;
+        const pulse = Math.sin(pulsePhase);
+        const rimWidth = bellR * (1.04 - 0.13 * pulse);
+        const bellHeight = bellR * (0.86 + 0.12 * pulse);
+
+        const sinA = Math.sin(totalAngle);
+        const cosA = Math.cos(totalAngle);
+
+        j.strands.forEach((st) => {
+          const rx = st.u * rimWidth * 0.82;
+          const ry = bellHeight * 0.28;
+          const anchorX = bellX + rx * cosA - ry * sinA;
+          const anchorY = bellY + rx * sinA + ry * cosA;
+          const segLen = (12.8 * st.lenFactor * j.scale * j.grow * scaleFactor);
+
+          if (!j.initializedNodes) {
+            st.nodes.forEach((nd, k) => {
+              nd.x = anchorX + sinA * k * segLen * 0.30;
+              nd.y = anchorY + k * segLen;
+              nd.vx = 0;
+              nd.vy = 0;
+            });
+          } else {
+            st.nodes[0].x = anchorX;
+            st.nodes[0].y = anchorY;
+            for (let k = 1; k < st.nodes.length; k++) {
+              const nd = st.nodes[k];
+              const prev = st.nodes[k - 1];
+              const ratio = k / (st.nodes.length - 1);
+
+              const waveX = Math.sin(tSec * 1.9 - k * 0.55 + st.phase + idx) * (24 + ratio * 34) * scaleFactor;
+              let gx = waveX + Math.sin(totalAngle) * 26 * (1 - ratio * 0.5);
+              let gy = (145 + ratio * 45) * scaleFactor;
+
+              if (pointer.vortexPower > 0.01) {
+                const dx = pointer.x - nd.x;
+                const dy = pointer.y - nd.y;
+                gx += dx * 3.9 * pointer.vortexPower;
+                gy = gy * (1 - pointer.vortexPower * 0.86) + dy * 3.9 * pointer.vortexPower;
+              }
+
+              nd.vx += gx * dt;
+              nd.vy += gy * dt;
+              nd.vx *= Math.pow(0.045, dt);
+              nd.vy *= Math.pow(0.045, dt);
+              nd.x += nd.vx * dt;
+              nd.y += nd.vy * dt;
+
+              const dx = nd.x - prev.x;
+              const dy = nd.y - prev.y;
+              const dist = Math.hypot(dx, dy) || 0.0001;
+              const diff = (dist - segLen) / dist;
+              nd.x -= dx * diff * 0.86;
+              nd.y -= dy * diff * 0.86;
+              nd.vx -= dx * diff * 8.0;
+              nd.vy -= dy * diff * 8.0;
+            }
+          }
+        });
+        j.initializedNodes = true;
+      });
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.age += dt;
+        if (p.age >= p.life) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        if (pointer.vortexPower > 0.05) {
+          const dx = pointer.x - p.x;
+          const dy = pointer.y - p.y;
+          const dist = Math.hypot(dx, dy) + 8;
+          const pull = (290 + 4800 / (dist + 26)) * pointer.vortexPower;
+          const swirl = (350 + 5600 / (dist + 22)) * pointer.vortexPower;
+          p.vx += ((dx / dist) * pull - (dy / dist) * swirl) * dt;
+          p.vy += ((dy / dist) * pull + (dx / dist) * swirl) * dt;
+          p.vx *= Math.pow(0.18, dt);
+          p.vy *= Math.pow(0.18, dt);
+        } else {
+          if (p.isBubble) {
+            p.vy -= 26 * dt;
+            p.vx += Math.sin(tSec * 3.5 + i) * 24 * dt;
+          } else {
+            p.vy += 16 * dt;
+            p.vx += Math.sin(tSec * 1.6 + i * 0.7) * 14 * dt;
+          }
+          p.vx *= Math.pow(0.42, dt);
+          p.vy *= Math.pow(0.42, dt);
+        }
+
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.rot += p.vRot * dt;
+      }
+
+      stardust.forEach((s) => {
+        s.u = (s.u + (s.driftX / vw) * dt + 1) % 1;
+        s.v = (s.v + (s.driftY / vh) * dt + 1) % 1;
+      });
+    }
+
+    // =========================================================================
+    // 10. 3D PROJECTION & PROCEDURAL ART RENDERING PIPELINE
+    // =========================================================================
+    function projectCoverPoint(lx, ly, lz) {
+      const cyHinge = folder.h * 0.5;
+      const dy = ly - cyHinge;
+      const rx = folder.openAngle - folder.tiltX;
+      const cosX = Math.cos(rx);
+      const sinX = Math.sin(rx);
+      const y1 = cyHinge + dy * cosX - lz * sinX;
+      const z1 = -dy * sinX + lz * cosX;
+
+      const cosY = Math.cos(folder.tiltY);
+      const sinY = Math.sin(folder.tiltY);
+      const x2 = lx * cosY + z1 * sinY;
+      const z2 = -lx * sinY + z1 * cosY;
+
+      const P = folder.perspective;
+      const k = P / Math.max(120, P - z2);
+      return {
+        x: folder.cx + x2 * k,
+        y: folder.cy + y1 * k,
+        k
+      };
+    }
+
+    function drawRoundedQuadPath(g, tl, tr, br, bl, r) {
+      function lerpPt(a, b, dist) {
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const t = Math.min(0.45, dist / len);
+        return { x: a.x + dx * t, y: a.y + dy * t };
+      }
+      const tl1 = lerpPt(tl, bl, r);
+      const tl2 = lerpPt(tl, tr, r);
+      const tr1 = lerpPt(tr, tl, r);
+      const tr2 = lerpPt(tr, br, r);
+      const br1 = lerpPt(br, tr, r);
+      const br2 = lerpPt(br, bl, r);
+      const bl1 = lerpPt(bl, br, r);
+      const bl2 = lerpPt(bl, tl, r);
+
+      g.beginPath();
+      g.moveTo(tl2.x, tl2.y);
+      g.lineTo(tr1.x, tr1.y);
+      g.quadraticCurveTo(tr.x, tr.y, tr2.x, tr2.y);
+      g.lineTo(br1.x, br1.y);
+      g.quadraticCurveTo(br.x, br.y, br2.x, br2.y);
+      g.lineTo(bl1.x, bl1.y);
+      g.quadraticCurveTo(bl.x, bl.y, bl2.x, bl2.y);
+      g.lineTo(tl1.x, tl1.y);
+      g.quadraticCurveTo(tl.x, tl.y, tl2.x, tl2.y);
+      g.closePath();
+    }
+
+    function drawAbyssalFronds(g, tSec) {
+      const sf = folder.w / 380;
+      const fronds = [
+        { ox: -0.34, oy: -0.54, ang: -0.68, len: 66 * sf },
+        { ox: -0.06, oy: -0.80, ang: -0.42, len: 74 * sf },
+        { ox: 0.30,  oy: -0.76, ang: 0.48,  len: 76 * sf },
+        { ox: 0.55,  oy: -0.30, ang: 1.08,  len: 68 * sf }
+      ];
+
+      fronds.forEach((f, idx) => {
+        const bx = folder.cx + f.ox * folder.w;
+        const by = folder.cy + f.oy * folder.h;
+        const sway = Math.sin(tSec * 1.1 + idx * 1.4) * 0.06;
+        const a = f.ang + sway;
+
+        g.save();
+        g.translate(bx, by);
+        g.rotate(a);
+
+        g.strokeStyle = 'rgba(56, 132, 126, 0.50)';
+        g.lineWidth = 1.25 * sf;
+        g.beginPath();
+        g.moveTo(0, 0);
+        g.quadraticCurveTo(4 * sf, -f.len * 0.5, 0, -f.len);
+        g.stroke();
+
+        const pairs = 7;
+        for (let i = 1; i <= pairs; i++) {
+          const u = i / (pairs + 0.6);
+          const py = -f.len * u;
+          const leafLen = (1 - u * 0.55) * 14 * sf;
+          [-1, 1].forEach((side) => {
+            g.fillStyle = i > 5 ? 'rgba(92, 188, 176, 0.50)' : 'rgba(48, 122, 112, 0.54)';
+            g.beginPath();
+            g.moveTo(0, py);
+            g.quadraticCurveTo(side * leafLen * 0.65, py - leafLen * 0.55, side * leafLen, py - leafLen * 0.82);
+            g.quadraticCurveTo(side * leafLen * 0.42, py - leafLen * 0.16, 0, py + 1.5 * sf);
+            g.closePath();
+            g.fill();
+          });
+        }
+        g.restore();
+      });
+    }
+
+    // Refined Blown-Glass Bioluminescent Jellyfish (Zero floating handle, pure internal specular crest & glowing 4-petal heart!)
+    function drawOneJellyfish(g, j, tSec) {
+      const sf = (folder.w / 380) * j.scale * j.grow;
+      if (sf < 0.04) return;
+
+      const bellX = folder.cx + j.nx * folder.w + j.dispX;
+      const bellY = folder.cy + j.ny * folder.h + j.dispY;
+      const totalAngle = j.baseAngle + j.angleOffset;
+      const pulse = Math.sin(tSec * j.pulseSpeed + j.phase);
+      const [crR, crG, crB] = j.pal.crest;
+      const [mdR, mdG, mdB] = j.pal.mid;
+      const [rmR, rmG, rmB] = j.pal.rim;
+      const [inR, inG, inB] = j.pal.inner;
+      const [dpR, dpG, dpB] = j.pal.deep;
+
+      // 0) Soft Tapered Volumetric Veil Plume (creates lush dreamy pastel clouds behind frosted glass!)
+      const midStrand = j.strands[3];
+      if (midStrand && midStrand.nodes.length >= 6) {
+        const n0 = midStrand.nodes[0];
+        const nEnd = midStrand.nodes[midStrand.nodes.length - 1];
+        const plumeGrad = g.createLinearGradient(n0.x, n0.y - 12 * sf, nEnd.x, nEnd.y);
+        plumeGrad.addColorStop(0.0, `rgba(${inR}, ${inG}, ${inB}, 0.26)`);
+        plumeGrad.addColorStop(0.45, `rgba(${mdR}, ${mdG}, ${mdB}, 0.18)`);
+        plumeGrad.addColorStop(1.0, `rgba(${mdR}, ${mdG}, ${mdB}, 0.0)`);
+        g.save();
+        g.strokeStyle = plumeGrad;
+        g.lineWidth = 30 * sf;
+        g.lineCap = 'round';
+        g.beginPath();
+        g.moveTo(n0.x, n0.y);
+        g.quadraticCurveTo(midStrand.nodes[4].x, midStrand.nodes[4].y, nEnd.x, nEnd.y * 0.98 + n0.y * 0.02);
+        g.stroke();
+        g.restore();
+      }
+
+      // 1) Trailing Frilly Oral Arms & Pearl-Dotted Marginal Filaments
+      j.strands.forEach((st, sIdx) => {
+        const nodes = st.nodes;
+        if (nodes.length < 3) return;
+
+        if (st.isOralArm) {
+          g.save();
+          g.beginPath();
+          g.moveTo(nodes[0].x, nodes[0].y);
+          for (let k = 1; k < nodes.length - 1; k++) {
+            const xc = (nodes[k].x + nodes[k + 1].x) * 0.5 + Math.sin(tSec * 2.6 + k * 1.1 + sIdx) * 3.2 * sf;
+            const yc = (nodes[k].y + nodes[k + 1].y) * 0.5;
+            g.quadraticCurveTo(nodes[k].x, nodes[k].y, xc, yc);
+          }
+          g.strokeStyle = `rgba(${inR}, ${inG}, ${inB}, 0.38)`;
+          g.lineWidth = 6.0 * sf;
+          g.lineCap = 'round';
+          g.stroke();
+
+          g.strokeStyle = `rgba(${crR}, ${crG}, ${crB}, 0.68)`;
+          g.lineWidth = 1.6 * sf;
+          g.stroke();
+          g.restore();
+        } else {
+          g.save();
+          g.beginPath();
+          g.moveTo(nodes[0].x, nodes[0].y);
+          for (let k = 1; k < nodes.length; k++) {
+            g.lineTo(nodes[k].x, nodes[k].y);
+          }
+          g.strokeStyle = `rgba(${rmR}, ${rmG}, ${rmB}, 0.44)`;
+          g.lineWidth = 1.0 * sf;
+          g.stroke();
+
+          for (let k = 1; k < nodes.length; k++) {
+            const u = k / (nodes.length - 1);
+            const pr = (1 - u * 0.62) * 3.05 * sf;
+            const px = nodes[k].x;
+            const py = nodes[k].y;
+
+            g.fillStyle = `rgba(${mdR}, ${mdG}, ${mdB}, ${(0.84 - u * 0.40).toFixed(2)})`;
+            g.beginPath();
+            g.arc(px, py, pr, 0, Math.PI * 2);
+            g.fill();
+
+            g.strokeStyle = `rgba(${dpR}, ${dpG}, ${dpB}, ${(0.46 - u * 0.24).toFixed(2)})`;
+            g.lineWidth = 0.65 * sf;
+            g.stroke();
+
+            g.fillStyle = `rgba(255, 255, 255, ${(0.90 - u * 0.44).toFixed(2)})`;
+            g.beginPath();
+            g.arc(px - pr * 0.22, py - pr * 0.22, pr * 0.40, 0, Math.PI * 2);
+            g.fill();
+          }
+          g.restore();
+        }
+      });
+
+      // 2) Translucent Blown-Glass Umbrella Bell
+      g.save();
+      g.translate(bellX, bellY);
+      g.rotate(totalAngle);
+
+      const rw = 28 * sf * (1.04 - 0.12 * pulse);
+      const rh = 24 * sf * (0.88 + 0.11 * pulse);
+
+      // Soft outer bioluminescence halo
+      const halo = g.createRadialGradient(0, -rh * 0.2, rw * 0.1, 0, 0, rw * 1.95);
+      halo.addColorStop(0, j.pal.glow);
+      halo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      g.fillStyle = halo;
+      g.beginPath();
+      g.arc(0, -rh * 0.1, rw * 1.95, 0, Math.PI * 2);
+      g.fill();
+
+      // Scalloped 8-lobe umbrella bell silhouette
+      g.beginPath();
+      g.moveTo(-rw, rh * 0.26);
+      g.bezierCurveTo(-rw * 1.02, -rh * 0.56, -rw * 0.54, -rh * 1.04, 0, -rh * 1.04);
+      g.bezierCurveTo(rw * 0.54, -rh * 1.04, rw * 1.02, -rh * 0.56, rw, rh * 0.26);
+
+      const lobes = 8;
+      for (let i = 0; i < lobes; i++) {
+        const x1 = rw - ((i + 0.5) / lobes) * (rw * 2);
+        const x2 = rw - ((i + 1) / lobes) * (rw * 2);
+        const lobeDip = rh * (0.37 + Math.sin((i + 0.5) / lobes * Math.PI) * 0.08);
+        g.quadraticCurveTo(x1, lobeDip, x2, rh * 0.25);
+      }
+      g.closePath();
+
+      const bellGrad = g.createRadialGradient(-rw * 0.16, -rh * 0.62, rh * 0.05, 0, -rh * 0.08, rw * 1.14);
+      bellGrad.addColorStop(0.0, `rgba(${crR}, ${crG}, ${crB}, 0.96)`);
+      bellGrad.addColorStop(0.36, `rgba(${inR}, ${inG}, ${inB}, 0.78)`);
+      bellGrad.addColorStop(0.76, `rgba(${mdR}, ${mdG}, ${mdB}, 0.70)`);
+      bellGrad.addColorStop(1.0, `rgba(${rmR}, ${rmG}, ${rmB}, 0.88)`);
+      g.fillStyle = bellGrad;
+      g.fill();
+
+      // Delicate luminous radial silk ribs inside bell
+      g.strokeStyle = 'rgba(255, 255, 255, 0.42)';
+      g.lineWidth = 0.8 * sf;
+      for (let i = 1; i < lobes; i++) {
+        const u = (i / lobes) * 2 - 1;
+        g.beginPath();
+        g.moveTo(u * rw * 0.08, -rh * 0.88);
+        g.quadraticCurveTo(u * rw * 0.62, -rh * 0.36, u * rw * 0.88, rh * 0.25);
+        g.stroke();
+      }
+
+      // Soft Luminous Inner Medusa Core Glow (pure ethereal radial bloom, zero eye-like circles!)
+      const coreGlow = g.createRadialGradient(0, -rh * 0.42, 0.5 * sf, 0, -rh * 0.32, rw * 0.52);
+      coreGlow.addColorStop(0, 'rgba(255, 252, 255, 0.65)');
+      coreGlow.addColorStop(0.5, `rgba(${inR}, ${inG}, ${inB}, 0.28)`);
+      coreGlow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      g.fillStyle = coreGlow;
+      g.beginPath();
+      g.ellipse(0, -rh * 0.34, rw * 0.46, rh * 0.36, 0, 0, Math.PI * 2);
+      g.fill();
+
+      // Crisp dark-indigo outer contour (so overlapping bells separate cleanly like hand-inked petals!)
+      g.strokeStyle = `rgba(${dpR}, ${dpG}, ${dpB}, 0.64)`;
+      g.lineWidth = 1.4 * sf;
+      g.stroke();
+
+      // Glossy internal upper-dome crescent specular highlight
+      g.strokeStyle = 'rgba(255, 255, 255, 0.84)';
+      g.lineWidth = 1.15 * sf;
+      g.lineCap = 'round';
+      g.beginPath();
+      g.moveTo(-rw * 0.70, -rh * 0.24);
+      g.bezierCurveTo(-rw * 0.52, -rh * 0.76, -rw * 0.14, -rh * 0.90, rw * 0.36, -rh * 0.78);
+      g.stroke();
+
+      g.restore();
+    }
+
+    function easeOutCubic(x) {
+      return 1 - Math.pow(1 - x, 3);
+    }
+
+    function drawPocketCardsInterior(g, crispPass = false) {
+      const sf = folder.w / 380;
+      if (!crispPass && !folder.isOpen && filesState.length > 0) {
+        const count = Math.min(3, filesState.length);
+        for (let i = 0; i < count; i++) {
+          const ox = (i - 1) * 38 * sf;
+          const oy = (-14 + Math.abs(i - 1) * 12) * sf;
+          g.save();
+          g.translate(folder.cx + ox, folder.cy + oy);
+          g.rotate((i - 1) * 0.07);
+          g.fillStyle = 'rgba(198, 234, 255, 0.14)';
+          g.beginPath();
+          g.roundRect(-24 * sf, -34 * sf, 48 * sf, 68 * sf, 7 * sf);
+          g.fill();
+          g.restore();
+        }
+      }
+
+      if (pocketDropAnim) {
+        const p = pocketDropAnim.t / pocketDropAnim.duration;
+        let cyOffset = 0;
+        let alpha = 1;
+        if (p < 0.38) {
+          const k = p / 0.38;
+          cyOffset = (-75 + 88 * easeOutCubic(k)) * sf;
+        } else if (p < 0.74) {
+          const k = (p - 0.38) / 0.36;
+          const arc = Math.sin(k * Math.PI);
+          cyOffset = (13 - arc * 136) * sf;
+        } else {
+          const k = (p - 0.74) / 0.26;
+          cyOffset = (13 + k * 24) * sf;
+          alpha = 1 - k * 0.85;
+        }
+
+        const isPeekingAbove = cyOffset < -folder.h * 0.38;
+        if ((crispPass && isPeekingAbove) || (!crispPass)) {
+          g.save();
+          g.translate(folder.cx, folder.cy + cyOffset);
+          g.fillStyle = `rgba(214, 240, 255, ${(0.75 * alpha).toFixed(2)})`;
+          g.strokeStyle = `rgba(242, 252, 255, ${(0.88 * alpha).toFixed(2)})`;
+          g.lineWidth = 1.2 * sf;
+          g.beginPath();
+          g.roundRect(-21 * sf, -30 * sf, 42 * sf, 60 * sf, 7 * sf);
+          g.fill();
+          g.stroke();
+
+          g.fillStyle = `rgba(38, 62, 98, ${(0.88 * alpha).toFixed(2)})`;
+          g.font = `italic ${Math.round(12 * sf)}px Georgia, serif`;
+          g.fillText(pocketDropAnim.ext, -13 * sf, -8 * sf);
+          g.restore();
+        }
+      }
+    }
+
+    function drawDraggableMiniStack(g) {
+      const showOS = osDragging;
+      if (!showOS && (folder.isOpen || dockPile.respawnAlpha <= 0.02)) return;
+
+      const x = showOS ? pointer.x - 18 : dockPile.x;
+      const y = showOS ? pointer.y + 16 : dockPile.y;
+      const alpha = showOS ? 0.96 : dockPile.respawnAlpha * (dockPile.dragging ? 0.98 : 0.86);
+      const sf = clamp(folder.w / 380, 0.78, 1.05);
+      const extLabel = showOS ? osDragExt : dockPile.ext;
+
+      g.save();
+      g.translate(x, y);
+
+      const aura = g.createRadialGradient(0, 0, 2, 0, 0, 38 * sf);
+      aura.addColorStop(0, `rgba(165, 230, 255, ${(0.38 * alpha).toFixed(2)})`);
+      aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      g.fillStyle = aura;
+      g.beginPath();
+      g.arc(0, 0, 38 * sf, 0, Math.PI * 2);
+      g.fill();
+
+      g.save();
+      g.rotate(-0.14);
+      g.fillStyle = `rgba(168, 206, 248, ${(0.46 * alpha).toFixed(2)})`;
+      g.strokeStyle = `rgba(225, 246, 255, ${(0.56 * alpha).toFixed(2)})`;
+      g.lineWidth = 1;
+      g.beginPath();
+      g.roundRect(-17 * sf, -22 * sf, 32 * sf, 42 * sf, 5.5 * sf);
+      g.fill();
+      g.stroke();
+      g.restore();
+
+      g.save();
+      g.translate(4 * sf, 2 * sf);
+      g.rotate(0.08);
+      g.fillStyle = `rgba(220, 242, 255, ${(0.85 * alpha).toFixed(2)})`;
+      g.strokeStyle = `rgba(255, 255, 255, ${(0.92 * alpha).toFixed(2)})`;
+      g.lineWidth = 1.1;
+      g.beginPath();
+      g.roundRect(-16 * sf, -21 * sf, 32 * sf, 42 * sf, 5.5 * sf);
+      g.fill();
+      g.stroke();
+
+      g.fillStyle = `rgba(42, 64, 108, ${(0.90 * alpha).toFixed(2)})`;
+      g.font = `italic ${Math.round(10.5 * sf)}px Georgia, serif`;
+      g.fillText(extLabel, -10 * sf, 12 * sf);
+      g.restore();
+
+      g.restore();
+    }
+
+    // =========================================================================
+    // 11. MASTER RENDER LOOP
+    // =========================================================================
+    function renderFrame(now) {
+      stepSimulation(now);
+      const tSec = now * 0.001;
+      const sf = folder.w / 380;
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, vw, vh);
+
+      // Subtle abyssal backlight behind jellyfish crown
+      const ambGrad = ctx.createRadialGradient(
+        folder.cx + folder.w * 0.08,
+        folder.cy - folder.h * 0.36,
+        10,
+        folder.cx + folder.w * 0.06,
+        folder.cy - folder.h * 0.16,
+        folder.w * 0.96
+      );
+      ambGrad.addColorStop(0.0, 'rgba(72, 152, 212, 0.14)');
+      ambGrad.addColorStop(0.45, 'rgba(92, 82, 162, 0.075)');
+      ambGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = ambGrad;
+      ctx.fillRect(0, 0, vw, vh);
+
+      stardust.forEach((s) => {
+        const tw = 0.45 + 0.55 * Math.sin(tSec * s.speed + s.phase);
+        const [r, g, b] = s.tint;
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${(s.alpha * tw).toFixed(3)})`;
+        ctx.beginPath();
+        ctx.arc(s.u * vw, s.v * vh, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      drawParticlesByDepth(ctx, 2);
+
+      // Folder Upright Backplate (with top-left Tab ear!)
+      const bLeft = folder.cx - folder.w * 0.485 + folder.tiltY * 14;
+      const bTop = folder.cy - folder.h * 0.50 - folder.tiltX * 12;
+      const bW = folder.w * 0.97;
+      const bH = folder.h * 0.99;
+      const tabH = 17 * sf;
+      const tabW = 96 * sf;
+      const rBack = 14 * sf;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(bLeft + rBack, bTop - tabH);
+      ctx.lineTo(bLeft + tabW - 10 * sf, bTop - tabH);
+      ctx.quadraticCurveTo(bLeft + tabW, bTop - tabH, bLeft + tabW + 8 * sf, bTop);
+      ctx.lineTo(bLeft + bW - rBack, bTop);
+      ctx.quadraticCurveTo(bLeft + bW, bTop, bLeft + bW, bTop + rBack);
+      ctx.lineTo(bLeft + bW, bTop + bH - rBack);
+      ctx.quadraticCurveTo(bLeft + bW, bTop + bH, bLeft + bW - rBack, bTop + bH);
+      ctx.lineTo(bLeft + rBack, bTop + bH);
+      ctx.quadraticCurveTo(bLeft, bTop + bH, bLeft, bTop + bH - rBack);
+      ctx.lineTo(bLeft, bTop - tabH + rBack);
+      ctx.quadraticCurveTo(bLeft, bTop - tabH, bLeft + rBack, bTop - tabH);
+      ctx.closePath();
+
+      const backGrad = ctx.createLinearGradient(bLeft, bTop - tabH, bLeft, bTop + bH);
+      backGrad.addColorStop(0, 'rgba(68, 82, 108, 0.46)');
+      backGrad.addColorStop(0.35, 'rgba(40, 50, 72, 0.50)');
+      backGrad.addColorStop(1, 'rgba(18, 24, 38, 0.58)');
+      ctx.fillStyle = backGrad;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(190, 228, 255, 0.17)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+
+      // Render Pocket Contents onto Offscreen `pocketCanvas`
+      pocketCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      pocketCtx.clearRect(0, 0, vw, vh);
+
+      drawAbyssalFronds(pocketCtx, tSec);
+      drawPocketCardsInterior(pocketCtx, false);
+
+      jellyfishes.forEach((j) => {
+        if (j.layer === 'pocket') drawOneJellyfish(pocketCtx, j, tSec);
+      });
+
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(pocketCanvas, 0, 0);
+      ctx.restore();
+
+      // Velvety-Smooth Progressive Depth Frosted Blur!
+      if (supportsCtxFilter) {
+        blurNearCtx.clearRect(0, 0, blurNear.width, blurNear.height);
+        blurNearCtx.filter = 'blur(5.5px)';
+        blurNearCtx.drawImage(pocketCanvas, 0, 0, blurNear.width, blurNear.height);
+        blurNearCtx.filter = 'none';
+
+        blurDeepCtx.clearRect(0, 0, blurDeep.width, blurDeep.height);
+        blurDeepCtx.filter = 'blur(12px)';
+        blurDeepCtx.drawImage(blurNear, 0, 0, blurDeep.width, blurDeep.height);
+        blurDeepCtx.filter = 'none';
+      } else {
+        smoothKawasePass(pocketCanvas, blurNear, blurNearCtx, 2);
+        smoothKawasePass(blurNear, blurDeep, blurDeepCtx, 3);
+      }
+
+      const hw = folder.w * 0.5;
+      const hh = folder.h * 0.5;
+      const tl = projectCoverPoint(-hw, -hh, 0);
+      const tr = projectCoverPoint(hw, -hh, 0);
+      const br = projectCoverPoint(hw, hh, 0);
+      const bl = projectCoverPoint(-hw, hh, 0);
+
+      const topY = Math.min(tl.y, tr.y);
+      const botY = Math.max(bl.y, br.y);
+
+      ctx.save();
+      drawRoundedQuadPath(ctx, tl, tr, br, bl, 17 * sf);
+      ctx.clip();
+
+      // Occlude sharp background inside glass cover
+      ctx.fillStyle = 'rgba(10, 14, 24, 0.90)';
+      ctx.fillRect(0, 0, vw, vh);
+
+      // Deep velvety nebula frosted blur across pocket
+      ctx.globalAlpha = 0.96;
+      ctx.drawImage(blurDeep, 0, 0, vw, vh);
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = 0.36;
+      ctx.drawImage(blurDeep, 0, 0, vw, vh);
+      ctx.globalCompositeOperation = 'source-over';
+
+      // Progressive clearer lip band near top edge of glass
+      compBlurCtx.clearRect(0, 0, compBlur.width, compBlur.height);
+      compBlurCtx.globalCompositeOperation = 'source-over';
+      compBlurCtx.drawImage(blurNear, 0, 0, compBlur.width, compBlur.height);
+      compBlurCtx.globalCompositeOperation = 'destination-in';
+      const maskTop = (topY / vh) * compBlur.height;
+      const maskMid = ((topY + (botY - topY) * 0.50) / vh) * compBlur.height;
+      const vMask = compBlurCtx.createLinearGradient(0, maskTop, 0, Math.max(maskTop + 8, maskMid));
+      vMask.addColorStop(0.0, 'rgba(255, 255, 255, 0.82)');
+      vMask.addColorStop(0.45, 'rgba(255, 255, 255, 0.34)');
+      vMask.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+      compBlurCtx.fillStyle = vMask;
+      compBlurCtx.fillRect(0, 0, compBlur.width, compBlur.height);
+
+      ctx.globalAlpha = 0.82;
+      ctx.drawImage(compBlur, 0, 0, vw, vh);
+      ctx.globalAlpha = 1.0;
+
+      // Translucent Smoked-Pearl Frosted Glass Sheen (with subsurface lip glow!)
+      const frostGrad = ctx.createLinearGradient(tl.x, topY, bl.x, botY);
+      frostGrad.addColorStop(0.0, 'rgba(152, 174, 212, 0.30)');
+      frostGrad.addColorStop(0.28, 'rgba(98, 114, 150, 0.28)');
+      frostGrad.addColorStop(1.0, 'rgba(52, 62, 86, 0.40)');
+      ctx.fillStyle = frostGrad;
+      ctx.fillRect(0, 0, vw, vh);
+
+      const spotR = folder.w * 0.72;
+      const spot = ctx.createRadialGradient(pointer.smoothX, pointer.smoothY, 4, pointer.smoothX, pointer.smoothY, spotR);
+      const spotBoost = folder.isDragNear ? 0.22 : (0.11 + pointer.vortexPower * 0.16);
+      spot.addColorStop(0.0, `rgba(182, 238, 255, ${spotBoost.toFixed(3)})`);
+      spot.addColorStop(0.45, `rgba(156, 186, 248, ${(spotBoost * 0.42).toFixed(3)})`);
+      spot.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = spot;
+      ctx.fillRect(0, 0, vw, vh);
+
+      if (grainPattern) {
+        ctx.globalAlpha = 0.30;
+        ctx.fillStyle = grainPattern;
+        ctx.fillRect(0, 0, vw, vh);
+        ctx.globalAlpha = 1.0;
+      }
+      ctx.restore();
+
+      // 1.25px Specular Bevel Rim Highlight
+      ctx.save();
+      drawRoundedQuadPath(ctx, tl, tr, br, bl, 17 * sf);
+      const rimGrad = ctx.createLinearGradient(tl.x, tl.y, br.x, br.y);
+      const dragGlow = folder.isDragNear ? 0.28 : 0;
+      rimGrad.addColorStop(0.0, `rgba(226, 246, 255, ${(0.54 + dragGlow).toFixed(2)})`);
+      rimGrad.addColorStop(0.35, `rgba(180, 216, 248, ${(0.25 + dragGlow).toFixed(2)})`);
+      rimGrad.addColorStop(0.75, `rgba(170, 208, 244, ${(0.26 + dragGlow).toFixed(2)})`);
+      rimGrad.addColorStop(1.0, `rgba(232, 249, 255, ${(0.60 + dragGlow).toFixed(2)})`);
+      ctx.strokeStyle = rimGrad;
+      ctx.lineWidth = 1.25;
+      ctx.stroke();
+      ctx.restore();
+
+      drawPocketCardsInterior(ctx, true);
+
+      // Foreground Right-Overhang Jellyfish Cascade (Crisp Outside the Glass!)
+      jellyfishes.forEach((j) => {
+        if (j.layer === 'front') drawOneJellyfish(ctx, j, tSec);
+      });
+
+      drawParticlesByDepth(ctx, 1);
+      drawParticlesByDepth(ctx, 0);
+
+      drawDraggableMiniStack(ctx);
+
+      if (pointer.vortexPower > 0.02) {
+        ctx.save();
+        const vp = pointer.vortexPower;
+        for (let r = 0; r < 3; r++) {
+          const rad = (24 + r * 26) * (0.75 + 0.25 * Math.sin(tSec * 6 + r));
+          ctx.strokeStyle = `rgba(166, 240, 255, ${(0.28 * vp * (1 - r * 0.28)).toFixed(3)})`;
+          ctx.lineWidth = 1.1;
+          ctx.beginPath();
+          ctx.arc(pointer.x, pointer.y, rad, tSec * (4 + r), tSec * (4 + r) + Math.PI * 1.35);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      if (pointer.active) {
+        ctx.save();
+        const cx = pointer.smoothX;
+        const cy = pointer.smoothY;
+        const rs = pointer.ringScale;
+
+        const cGlow = ctx.createRadialGradient(cx, cy, 1, cx, cy, 36);
+        cGlow.addColorStop(0, 'rgba(185, 242, 255, 0.22)');
+        cGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = cGlow;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 36, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = pointer.vortexActive ? 'rgba(165, 242, 255, 0.86)' : 'rgba(235, 248, 255, 0.54)';
+        ctx.lineWidth = 1.05;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 10.5 * rs, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(cx, cy, 2.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      ctx.restore();
+      requestAnimationFrame(renderFrame);
+    }
+
+    function drawParticlesByDepth(g, targetLayer) {
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        if (p.depthLayer !== targetLayer) continue;
+
+        const lifeRatio = p.age / p.life;
+        const fade = lifeRatio < 0.12 ? (lifeRatio / 0.12) : Math.pow(1 - lifeRatio, 1.35);
+        if (fade <= 0.01) continue;
+
+        const sp = bokehSprites[p.spriteIdx];
+        g.save();
+        g.globalAlpha = fade;
+        g.translate(p.x, p.y);
+
+        if (p.isBubble) {
+          g.strokeStyle = 'rgba(195, 245, 255, 0.78)';
+          g.fillStyle = 'rgba(165, 238, 255, 0.18)';
+          g.lineWidth = 0.9;
+          g.beginPath();
+          g.arc(0, 0, p.size, 0, Math.PI * 2);
+          g.fill();
+          g.stroke();
+          g.fillStyle = 'rgba(255, 255, 255, 0.85)';
+          g.beginPath();
+          g.arc(-p.size * 0.3, -p.size * 0.3, p.size * 0.26, 0, Math.PI * 2);
+          g.fill();
+        } else if (targetLayer === 0) {
+          const d = p.size * 2.2;
+          g.drawImage(sp.soft, -d * 0.5, -d * 0.5, d, d);
+        } else if (targetLayer === 1) {
+          g.rotate(p.rot);
+          const d = p.size * 2.3;
+          g.drawImage(sp.crisp, -d * 0.5, -d * 0.5, d, d);
+        } else {
+          const [r, gr, b] = sp.rgb;
+          g.fillStyle = `rgb(${r}, ${gr}, ${b})`;
+          g.beginPath();
+          g.arc(0, 0, p.size, 0, Math.PI * 2);
+          g.fill();
+        }
+        g.restore();
+      }
+    }
+
+    initStardust();
+    initCollection();
+    updateLayout();
+    window.addEventListener('resize', updateLayout);
+    requestAnimationFrame(renderFrame);
+  })();
+  </script>
+</body>
+</html>
